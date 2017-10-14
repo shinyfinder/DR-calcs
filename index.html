@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Dream Radar Calculators</title>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	
+	<script type="text/javascript">
+	$(document).ready(function() {
+		// show fields necessary for selected dropdown
+		$("select").change(function(){
+			// hide and reset all display options
+			$(".formData").hide();
+			$("#inputForm")[0].reset();
+			document.getElementById("Results").innerHTML = '';
+
+			// if regular selected, show and enable all fields. Else, show and enable only the relevant ones
+			if(this.value == "regular") {
+				$(".formData").show();
+				//$(".formData.occupied, .formData.genderless").attr("disabled",false);
+			} else { 
+				$(".formData.PIDFrame, .formData.IVFrame, .formData.Button").show();
+				//$(".formData.occupied, .formData.genderless").attr("disabled",true);
+			};
+		});
+	});
+
+	$(function(){
+		$("#method option[value='regular']").attr("selected",true);
+	});
+
+
+	function Calc() {
+		var PID, offset, advances, match, slots, genderless, IV, finalFrame, memoryLink, method, output;
+
+		var errorArray = ["Error(s) Found!"];
+		var errorMessage = "";
+			
+		// Retrieve entered values
+		memoryLink = document.querySelector("input[name=memLink]:checked").value;
+		PID = document.getElementById("PIDFrame").value;
+		slots = document.getElementById("occupied").value;
+		genderless = document.getElementById("genderless").value;
+		offset = document.querySelector("input[name=offset]:checked").value;
+		IV = document.getElementById("IVFrame").value;
+		method = document.getElementById("method").value;
+
+
+		// check for input errors and display messages
+		// PID input error
+		if (PID == '' || PID < 1 || PID%1 != 0) {
+			errorMessage = "Error: PID Frame must be an integer of at least 1.";
+			errorArray.push(errorMessage);
+			//document.getElementById("Results").innerHTML = errorArray.join('<br />');
+		};
+
+		// occupied slots
+		if ((slots == '' || slots < 1 || slots > 6 || slots%1 != 0) && method=="regular") {
+			errorMessage = "Error: The target Pok&eacute;mon's slot must be and integer between 1 and 6.";
+			errorArray.push(errorMessage);
+		};
+
+		// number of genderless Pokemon
+		if ((genderless == '' || genderless < 0 || genderless > 5 || genderless%1 != 0) && method=="regular")  {
+			errorMessage = "Error: There must be between 0 and 5 genderless Pok&eacute;mon before your target.";
+			errorArray.push(errorMessage);
+		};
+
+		// IV frame
+		if (IV == '' || IV < 1 || IV%1 != 0) {
+			errorMessage = "Error: IV Frame must be an integer of at least 1.";
+			errorArray.push(errorMessage);
+			
+		};
+
+		// display error mesages and break function execution
+		if (errorMessage != '') {
+			document.getElementById("Results").innerHTML = errorArray.join("<br />");
+			$("#Results").css("color","red");
+			return;
+		};
+
+		// For remaining processing and error checks, convert inputs to numbers
+		memoryLink = Number(memoryLink);
+		PID = Number(PID);
+		slots = Number(slots);
+		genderless = Number(genderless);
+		offset = Number(offset);
+		IV = Number(IV);
+
+		
+		// check if IV frame is correct Even/Odd for given slot
+		if (slots%2 == 0 && method == "regular") {
+			if (IV%2 == 0) {
+				errorMessage = "Error: IV Frame must be an odd number.";
+				errorArray.push(errorMessage);
+			};
+		} else if (slots%2 != 0 && method == "regular") {
+			if (IV%2 != 0) {
+				errorMessage = "Error: IV frame must be an even number.";
+				errorArray.push(errorMessage);
+			};
+		} else if (method == "therian") {
+			if (IV%2 == 0) {
+				errorMessage = "Error: IV frame must be an odd number.";
+				errorArray.push(errorMessage);
+			};
+		} else if (method == "otherLegend") {
+			if (IV%2 != 0) {
+				errorMessage = "Error: IV frame must be an even number.";
+				errorArray.push(errorMessage);
+			};
+		};
+
+		// check if number of genderless exceeds slot of target
+		if (genderless >= slots && method == "regular") {
+			errorMessage = "Error: There cannot be more than or the same number of genderless Pok&eacute;mon as the slot of your target.";
+			errorArray.push(errorMessage);
+		};
+
+		// check if target IV frame meets minimum required
+		if (method == "regular") {
+			if (IV < (8 + (13*(slots-1)))) {
+				minFrame = 8 + 13*(slots-1);
+				errorMessage = "Error: Your target IV frame must be at least " + minFrame + ".";
+				errorArray.push(errorMessage);
+			};
+
+		} else if (method == "therian") {
+			if (IV < 21) {
+				errorMessage = "Error: Your target IV frame must be at least 21.";
+				errorArray.push(errorMessage);
+			};
+		} else if (method == "otherLegend") {
+			if (IV < 8) {
+				errorMessage = "Error: Your target IV frame must be at least 8.";
+				errorArray.push(errorMessage);
+			};
+		};
+	
+		// display error mesages and break function execution
+		if (errorMessage != '') {
+			document.getElementById("Results").innerHTML = errorArray.join("<br />");
+			$("#Results").css("color","red");
+			return;
+		};
+
+		
+		// Perform Calculations
+		if(method == "regular"){
+			// Required advances to get to IV Frame
+			advances = 0.5*(IV - 8 - (13*(slots-1)));
+
+			// First match in researcher
+			match = PID + 1 - memoryLink;
+
+			// Final PID frame
+			finalFrame = PID + offset + (2*advances) + (5*(slots-1)) - genderless - memoryLink;
+
+
+
+		} else if(method == "therian"){
+			// Advances to IV frame
+			advances = 0.5*(IV - 21);
+    
+			// First match in researcher
+    		match = PID + 1 - memoryLink;
+
+    		// Final PID frame
+    		finalFrame = PID + 2 + (advances*2) + (5*1) - memoryLink;
+
+
+
+		} else if(method == "otherLegend") {
+			// Advances to IV frame
+			advances = 0.5*(IV - 8);
+
+			// First match in researcher
+    		match = PID + 1 - memoryLink;
+
+    		// final PID frame
+    		finalFrame = PID + 2 + (advances*2) + (5*0) - memoryLink;
+
+    	};
+
+
+    	// Print results to output paragraph
+    	// first, create array of output 
+    	output = ["Results: <br />"];
+
+    	// assign output variables
+    	var advancesOut = "Number of advances required: " + advances;
+    	var matchOut = "Frame in Researcher corresponding to first spinner match: " + match;
+    	var finalFrameOut = "Final PID Frame: " + finalFrame;
+
+    	// append to array
+    	output.push(advancesOut, matchOut, finalFrameOut);
+
+    	// display output
+		document.getElementById("Results").innerHTML = output.join("<br />");
+		$("#Results").css("color","black");
+
+		
+		
+	};
+	</script>
+		
+
+</head>
+
+<body>
+<p>This is a test of the HTML/JS calculators to be used with Smogon's Dream Radar RNG abuse guide.</p>
+
+
+<form>
+	<!-- Memory Link -->
+	Have you used the Memory Link: 	
+	<input type="radio" name="memLink" value="1" /> Yes
+	<input type="radio" name="memLink" value="0" checked /> No
+
+	<br />
+
+	<!-- RNG Target -->
+	Select your RNG target: 
+	<select name="method" id="method">
+		<option value="regular">Regular Pok&eacute;mon</option>
+		<option value="therian">Therians</option>
+		<option value="otherLegend">Gen 4 Legend</option>
+	</select>
+</form>
+
+<br />
+
+<!-- Create form -->
+<form name="regularData" id="inputForm">
+	<!-- PID Frame -->
+	<label for="PIDFrame" class="formData PIDFrame">Initial PID frame:</label>
+	<input type="number" name="PIDFrame" id="PIDFrame" class="formData PIDFrame" style="width: 50px;" /><br />
+
+	<!-- Target IV Frame -->
+	<label for="IVFrame" class="formData IVFrame">Target IV frame:</label>
+	<input type="number" name="IVFrame" id="IVFrame" class="formData IVFrame" style="width: 50px;" /> <br />
+
+	<!-- Occupied slots -->
+	<label for="occupied" class="formData occupied">Slot of target Pok&eacute;mon:</label>
+	<input type="number" name="occupied" id="occupied" class="formData occupied" style="width: 40px;" /><br />
+
+	<!-- Genderless -->
+	<label for="genderless" class="formData genderless">Number of genderless Pok&eacute;mon before target:
+	</label>
+	<input type="number" name="genderless" id="genderless" class="formData genderless" style="width: 40px;" />
+	<br />
+
+	<!-- Target Offset -->
+	<div id="offsetRadio" class="formData offset">
+		Does your target Pok&eacute;mon have a gender?
+		<input type="radio" name="offset" id="offsetGenderless" value="2" checked />Yes
+		<input type="radio" name="offset" id="offsetGendered" value="1" />No<br /><br />
+	</div>
+
+	
+	<!-- Form Buttons -->
+	<input type="reset" class="formData Button" onclick="document.getElementById('Results').innerHTML = ''"/>
+	<input type="button" onclick="Calc()" value="Calculate" class="formData Button" />
+
+</form>
+
+<p id="Results"></p>
+
+</body>
+</html>

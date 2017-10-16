@@ -50,14 +50,14 @@
 		// check for input errors and display messages
 		// PID input error
 		if (PID == '' || PID < 1 || PID%1 != 0) {
-			errorMessage = "Error: PID Frame must be an integer of at least 1.";
+			errorMessage = "Error: Target PID frame must be an integer of at least 1.";
 			errorArray.push(errorMessage);
 			//document.getElementById("Results").innerHTML = errorArray.join('<br />');
 		};
 
 		// occupied slots
 		if ((slots == '' || slots < 1 || slots > 6 || slots%1 != 0) && method=="regular") {
-			errorMessage = "Error: The target Pok&eacute;mon's slot must be and integer between 1 and 6.";
+			errorMessage = "Error: The target Pok&eacute;mon's slot must be an integer between 1 and 6.";
 			errorArray.push(errorMessage);
 		};
 
@@ -69,7 +69,7 @@
 
 		// IV frame
 		if (IV == '' || IV < 1 || IV%1 != 0) {
-			errorMessage = "Error: IV Frame must be an integer of at least 1.";
+			errorMessage = "Error: Target IV frame must be an integer of at least 1.";
 			errorArray.push(errorMessage);
 			
 		};
@@ -192,7 +192,7 @@
     	// assign output variables
     	var advancesOut = "Number of advances required: " + advances;
     	var matchOut = "Frame in Researcher corresponding to first spinner match: " + match;
-    	var finalFrameOut = "Final PID Frame: " + finalFrame;
+    	var finalFrameOut = "Final PID frame: " + finalFrame;
 
     	// append to array
     	output.push(advancesOut, matchOut, finalFrameOut);
@@ -210,7 +210,6 @@
 </head>
 
 <body>
-<p>This is a test of the HTML/JS calculators to be used with Smogon's Dream Radar RNG abuse guide.</p>
 
 
 <form>
